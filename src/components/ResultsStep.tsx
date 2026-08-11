@@ -152,6 +152,20 @@ export function ResultsStep({ result, onBack }: Props) {
         <div className="section-label">
           Journal entries <CalculatedStamp />
         </div>
+        <div style={{ borderBottom: "2px solid var(--ink)", paddingBottom: "0.75rem", marginBottom: "1rem" }}>
+          <div style={{ fontWeight: 600, marginBottom: "0.4rem" }}>{result.initialJournalEntry.description}</div>
+          <table>
+            <tbody>
+              {result.initialJournalEntry.lines.map((line, i) => (
+                <tr key={i}>
+                  <td style={{ paddingLeft: line.credit ? "1.5rem" : 0 }}>{line.account}</td>
+                  <td>{line.debit != null ? fmt(line.debit) : ""}</td>
+                  <td>{line.credit != null ? fmt(line.credit) : ""}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         <div style={{ display: "flex", flexDirection: "column", gap: "1rem", maxHeight: "500px", overflowY: "auto" }}>
           {journalEntries.slice(0, 12).map((je) => (
             <div key={je.period} style={{ borderBottom: "1px dotted var(--rule-strong)", paddingBottom: "0.75rem" }}>

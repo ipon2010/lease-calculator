@@ -3,7 +3,7 @@ import { classifyLease } from "./classification";
 import { buildPaymentSchedule } from "./paymentSchedule";
 import { computeInitialMeasurement } from "./initialMeasurement";
 import { buildAmortizationSchedule } from "./amortization";
-import { generateJournalEntries } from "./journalEntries";
+import { generateJournalEntries, generateInitialJournalEntry } from "./journalEntries";
 
 /**
  * Runs the complete deterministic ASC 842 calculation pipeline.
@@ -23,12 +23,14 @@ export function runLeaseCalculation(inputs: LeaseInputs): EngineResult {
     classification
   );
   const journalEntries = generateJournalEntries(amortizationSchedule, classification);
+  const initialJournalEntry = generateInitialJournalEntry(inputs, initialMeasurement);
 
   return {
     classification,
     paymentSchedule,
     initialMeasurement,
     amortizationSchedule,
+    initialJournalEntry,
     journalEntries,
   };
 }

@@ -1,6 +1,49 @@
-import { AmortizationRow, ClassificationResult, JournalEntry } from "./types";
+import { AmortizationRow, ClassificationResult, InitialMeasurement, JournalEntry, LeaseInputs } from "./types";
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
+
+/**
+ * Generates the day-one journal entry recognizing the ROU asset and lease
+ * liability at commencement. This is separate from the periodic entries
+ * (which record subsequent interest, principal, and amortization) and must
+ * be posted once, before the first period's entry.
+ *
+ * Entry logic:
+ *   Dr Right-of-Use Asset        rouAssetInitial
+ *   Dr Cash (incentive received) leaseIncentives   [only if incentives > 0]
+ *   Cr Lease Liability           leaseLiabilityInitial
+ *   Cr Cash (initial direct costs) initialDirectCosts   [only if > 0]
+ *   Cr Cash (prepaid rent)       prepaidRent   [only if > 0]
+ *
+ * This balances by construction, since:
+ *   rouAssetInitial = leaseLiabilityInitial + initialDirectCosts + prepaidRent - leaseIncentives
+ *   => rouAssetInitial + leaseIncentives = leaseLiabilityInitial + initialDirectCosts + prepaidRent
+ */
+export function generateInitialJournalEntry(
+  inputs: LeaseInputs,
+  measurement: InitialMeasurement
+): JournalEntry {
+  const lines: JournalEntry["lines"] = [
+    { account: "Right-of-Use Asset", debit: round2(measurement.rouAssetInitial) },
+  ];
+  if (inputs.leaseIncentives > 0) {
+    lines.push({ account: "Cash (lease incentive received)", debit: round2(inputs.leaseIncentives) });
+  }
+  lines.push({ account: "Lease Liability", credit: round2(measurement.leaseLiabilityInitial) });
+  if (inputs.initialDirectCosts > 0) {
+    lines.push({ account: "Cash (initial direct costs)", credit: round2(inputs.initialDirectCosts) });
+  }
+  if (inputs.prepaidRent > 0) {
+    lines.push({ account: "Cash (prepaid rent)", credit: round2(inputs.prepaidRent) });
+  }
+
+  return {
+    period: 0,
+    date: inputs.commencementDate,
+    description: "Lease commencement — initial recognition of ROU asset and lease liability",
+    lines,
+  };
+}
 
 /**
  * Generates period journal entries directly from the amortization schedule rows.

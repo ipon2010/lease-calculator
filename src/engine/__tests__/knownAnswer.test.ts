@@ -87,6 +87,21 @@ describe("Known-answer example 1: Operating lease (FinQuery/LeaseQuery)", () => 
       expect(debits).toBeCloseTo(credits, 2);
     }
   });
+
+  it("initial journal entry balances (debits = credits) and reflects ROU asset / lease liability", () => {
+    const je = result.initialJournalEntry;
+    const debits = je.lines.reduce((s, l) => s + (l.debit ?? 0), 0);
+    const credits = je.lines.reduce((s, l) => s + (l.credit ?? 0), 0);
+    expect(debits).toBeCloseTo(credits, 2);
+    expect(je.lines.find((l) => l.account === "Right-of-Use Asset")?.debit).toBeCloseTo(
+      result.initialMeasurement.rouAssetInitial,
+      2
+    );
+    expect(je.lines.find((l) => l.account === "Lease Liability")?.credit).toBeCloseTo(
+      result.initialMeasurement.leaseLiabilityInitial,
+      2
+    );
+  });
 });
 
 describe("Known-answer example 2: Finance lease (FinQuery/LeaseQuery)", () => {
@@ -156,6 +171,21 @@ describe("Known-answer example 2: Finance lease (FinQuery/LeaseQuery)", () => {
   it("ROU asset schedule amortizes fully to zero by end of term", () => {
     const last = result.amortizationSchedule[result.amortizationSchedule.length - 1];
     expect(last.endingRouAsset).toBeCloseTo(0, 1);
+  });
+
+  it("initial journal entry balances (debits = credits) and reflects ROU asset / lease liability", () => {
+    const je = result.initialJournalEntry;
+    const debits = je.lines.reduce((s, l) => s + (l.debit ?? 0), 0);
+    const credits = je.lines.reduce((s, l) => s + (l.credit ?? 0), 0);
+    expect(debits).toBeCloseTo(credits, 2);
+    expect(je.lines.find((l) => l.account === "Right-of-Use Asset")?.debit).toBeCloseTo(
+      result.initialMeasurement.rouAssetInitial,
+      2
+    );
+    expect(je.lines.find((l) => l.account === "Lease Liability")?.credit).toBeCloseTo(
+      result.initialMeasurement.leaseLiabilityInitial,
+      2
+    );
   });
 
   it("journal entries balance (debits = credits) every period", () => {

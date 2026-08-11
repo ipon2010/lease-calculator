@@ -34,16 +34,17 @@ costs, lease incentive, unstated discount rate (you must enter IBR manually).
 
 Key facts to verify were extracted:
 - Commencement: **Feb 1, 2026**, term **60 months**
-- Base rent: **$22,400/month**, 3% annual escalation
+- Base rent: **$22,400/month**, 3% escalation on EVERY annual anniversary (not just once —
+  this requires 4 separate escalation rows in the Review screen, at periods 13/25/37/49)
 - 1 month free rent (Feb 2026)
 - Initial direct costs: **$6,500**; lease incentive: **$84,000**
 - No stated rate implicit in the lease — IBR field should be blank, requiring manual entry
 - No ownership transfer, no purchase option → should classify as **operating**
 
-Reference output (using an assumed 6.5% IBR — enter this manually since the document
-doesn't state a rate):
-- Lease liability (initial): **$1,155,337.38**
-- ROU asset (initial): **$1,077,837.38** (liability + $6,500 IDC − $84,000 incentive)
+Reference output (using an assumed 6.5% IBR, and 4 escalation rows of 3% each at
+2027-02-01 / 2028-02-01 / 2029-02-01 / 2030-02-01):
+- Lease liability (initial): **$1,195,130.47**
+- ROU asset (initial): **$1,117,630.47** (liability + $6,500 IDC − $84,000 incentive)
 - Classification: **Operating lease** (no tests triggered)
 
 If you enter a different IBR, your numbers will differ — that's expected; re-run the
@@ -106,11 +107,13 @@ through month 73), each with your assumed CPI %, to match this reference exactly
 ## What "done" looks like
 
 Before calling this portfolio-ready, confirm:
-1. All 18 automated tests pass (`npm test`)
+1. All 20 automated tests pass (`npm test`)
 2. Each sample PDF extracts its key terms correctly (dates, rent, escalation type,
    free rent, IDC, incentives) — with the CPI sample correctly leaving the escalation
    % blank rather than guessing
-3. Entering the reference discount rates for each sample produces the reference
-   lease liability / ROU asset figures above
+3. Entering the reference discount rates and escalation rows for each sample produces
+   the reference lease liability / ROU asset figures above
 4. The classification walkthrough on Sample 2 shows the correct 3 triggered tests
-5. Journal entries balance (debits = credits) on every period for all three samples
+5. The Journal Entries card shows a day-one initial recognition entry (ROU asset /
+   lease liability / IDC / incentive) above the periodic entries, and it balances
+6. Journal entries balance (debits = credits) on every period for all three samples

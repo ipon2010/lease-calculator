@@ -119,5 +119,6 @@ export interface EngineResult {
   paymentSchedule: PaymentPeriod[];
   initialMeasurement: InitialMeasurement;
   amortizationSchedule: AmortizationRow[];
+  initialJournalEntry: JournalEntry;
   journalEntries: JournalEntry[];
 }
