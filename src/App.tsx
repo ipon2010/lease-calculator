@@ -2,15 +2,18 @@ import { useState } from "react";
 import { UploadStep } from "./components/UploadStep";
 import { ReviewStep } from "./components/ReviewStep";
 import { ResultsStep } from "./components/ResultsStep";
+import { AboutPage, TermsPage, PrivacyPage } from "./components/LegalPages";
 import { emptyReviewState, extractionToReviewState, reviewStateToLeaseInputs, ReviewFormState } from "./state";
 import { ExtractionResult } from "./extraction/types";
 import { runLeaseCalculation } from "./engine";
 import { EngineResult } from "./engine/types";
 
 type Step = "upload" | "review" | "results";
+type Page = "app" | "about" | "terms" | "privacy";
 
 function App() {
   const [step, setStep] = useState<Step>("upload");
+  const [page, setPage] = useState<Page>("app");
   const [reviewState, setReviewState] = useState<ReviewFormState>(emptyReviewState());
   const [result, setResult] = useState<EngineResult | null>(null);
 
@@ -32,12 +35,12 @@ function App() {
   }
 
   return (
-    <div style={{ maxWidth: "900px", margin: "0 auto", padding: "2.5rem 1.5rem 5rem" }}>
+    <div style={{ maxWidth: "900px", margin: "0 auto", padding: "2.5rem 1.5rem 3rem" }}>
       <header style={{ marginBottom: "2.5rem" }}>
         <div className="section-label" style={{ border: "none", marginBottom: "0.5rem" }}>
-          ASC 842 Lease Accounting Calculator
+          LesseeTrail
         </div>
-        <h1>From lease document to amortization schedule</h1>
+        <h1>ASC 842 lease accounting, from document to amortization schedule</h1>
         <p>
           AI reads the document. Code does the math. Every extracted term is stamped{" "}
           <span className="stamp verify">Verify</span> and every calculated figure is stamped{" "}
@@ -45,20 +48,50 @@ function App() {
         </p>
       </header>
 
-      {step === "upload" && <UploadStep onExtracted={handleExtracted} onSkip={handleSkipToManual} />}
+      {page === "about" && <AboutPage onBack={() => setPage("app")} />}
+      {page === "terms" && <TermsPage onBack={() => setPage("app")} />}
+      {page === "privacy" && <PrivacyPage onBack={() => setPage("app")} />}
 
-      {step === "review" && (
-        <ReviewStep
-          state={reviewState}
-          onChange={setReviewState}
-          onSubmit={handleCalculate}
-          onBack={() => setStep("upload")}
-        />
+      {page === "app" && (
+        <>
+          {step === "upload" && <UploadStep onExtracted={handleExtracted} onSkip={handleSkipToManual} />}
+
+          {step === "review" && (
+            <ReviewStep
+              state={reviewState}
+              onChange={setReviewState}
+              onSubmit={handleCalculate}
+              onBack={() => setStep("upload")}
+            />
+          )}
+
+          {step === "results" && result && <ResultsStep result={result} onBack={() => setStep("review")} />}
+        </>
       )}
 
-      {step === "results" && result && <ResultsStep result={result} onBack={() => setStep("review")} />}
+      <footer
+        style={{
+          marginTop: "3rem",
+          paddingTop: "1.5rem",
+          borderTop: "1px solid var(--rule)",
+          display: "flex",
+          gap: "1.5rem",
+          fontSize: "0.8rem",
+        }}
+      >
+        <a href="#" onClick={(e) => { e.preventDefault(); setPage("about"); }} style={{ color: "var(--ink-soft)" }}>
+          About
+        </a>
+        <a href="#" onClick={(e) => { e.preventDefault(); setPage("terms"); }} style={{ color: "var(--ink-soft)" }}>
+          Terms of Use
+        </a>
+        <a href="#" onClick={(e) => { e.preventDefault(); setPage("privacy"); }} style={{ color: "var(--ink-soft)" }}>
+          Privacy
+        </a>
+      </footer>
     </div>
   );
 }
 
 export default App;
+

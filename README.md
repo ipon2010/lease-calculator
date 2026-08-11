@@ -1,4 +1,4 @@
-# ASC 842 Lease Accounting Calculator
+# LesseeTrail — ASC 842 Lease Accounting Calculator
 
 Upload a commercial lease PDF → an AI step extracts the key terms → a deterministic
 (non-AI) calculation engine builds the ASC 842 right-of-use asset and lease liability
@@ -84,6 +84,16 @@ calls any AI API or costs anything to run.
 If you ever want to test extraction locally, you'd need `vercel dev` (which reads a
 local `.env` file for `ANTHROPIC_API_KEY`) rather than plain `npm run dev`, since plain
 Vite dev doesn't run the `/api` serverless function.
+
+## Rate limiting
+
+`api/extract.ts` includes a lightweight, best-effort daily cap (20 extractions
+per IP, 150 total per day) to protect against runaway API cost. This is an
+in-memory counter, so it resets on redeploys/cold starts and isn't perfectly
+enforced across Vercel's distributed edge instances — it's meant to blunt
+casual abuse or a stray bug, not stop a determined attacker. If this app ever
+sees meaningful real traffic, swap it for a shared store like Vercel KV or
+Upstash Redis so the limit holds consistently everywhere.
 
 ## What's not yet decided
 

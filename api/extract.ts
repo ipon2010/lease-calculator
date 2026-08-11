@@ -9,6 +9,48 @@ export const config = {
   runtime: "edge",
 };
 
+// --- Basic rate limiting -------------------------------------------------
+// This is a lightweight, best-effort safeguard against runaway API cost from
+// casual abuse or a stray infinite-loop bug in a client — NOT a robust
+// security control. Vercel edge functions run as multiple isolated
+// instances across regions, so this in-memory store is per-instance, not
+// globally shared: a determined abuser spreading requests across regions
+// could exceed these limits. It also resets whenever an instance cold-starts.
+// For a portfolio/demo deployment this is a reasonable low-effort trade-off.
+// If this app ever gets meaningful real traffic, replace this with a shared
+// store (e.g. Vercel KV / Upstash Redis) so limits are enforced consistently
+// across all edge instances.
+
+const PER_IP_DAILY_LIMIT = 20;
+const GLOBAL_DAILY_LIMIT = 150;
+const WINDOW_MS = 24 * 60 * 60 * 1000;
+
+interface Counter {
+  count: number;
+  windowStart: number;
+}
+
+const ipCounters = new Map<string, Counter>();
+let globalCounter: Counter = { count: 0, windowStart: Date.now() };
+
+function checkAndIncrement(counter: Counter, limit: number): { allowed: boolean; counter: Counter } {
+  const now = Date.now();
+  if (now - counter.windowStart > WINDOW_MS) {
+    counter = { count: 0, windowStart: now };
+  }
+  if (counter.count >= limit) {
+    return { allowed: false, counter };
+  }
+  counter.count += 1;
+  return { allowed: true, counter };
+}
+
+function getClientIp(req: Request): string {
+  const forwarded = req.headers.get("x-forwarded-for");
+  if (forwarded) return forwarded.split(",")[0].trim();
+  return req.headers.get("x-real-ip") ?? "unknown";
+}
+
 const SYSTEM_PROMPT = `You are a lease document data extraction tool. You will be given the raw text of a commercial lease agreement. Your only job is to extract specific data points as structured JSON. You do not perform any calculations, do not compute present values, do not determine lease classification, and do not make judgment calls beyond what is asked below.
 
 Return ONLY a single JSON object matching this exact shape, with no preamble, no markdown code fences, and no commentary before or after it:
@@ -43,6 +85,32 @@ Rules:
 export default async function handler(req: Request): Promise<Response> {
   if (req.method !== "POST") {
     return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405 });
+  }
+
+  // Global daily cap first (protects overall spend regardless of who's asking).
+  const globalCheck = checkAndIncrement(globalCounter, GLOBAL_DAILY_LIMIT);
+  globalCounter = globalCheck.counter;
+  if (!globalCheck.allowed) {
+    return new Response(
+      JSON.stringify({
+        error: "This tool has hit its daily extraction limit. Please try again tomorrow, or enter lease terms manually.",
+      }),
+      { status: 429 }
+    );
+  }
+
+  // Per-IP daily cap (protects against a single source hammering the endpoint).
+  const ip = getClientIp(req);
+  const ipCounter = ipCounters.get(ip) ?? { count: 0, windowStart: Date.now() };
+  const ipCheck = checkAndIncrement(ipCounter, PER_IP_DAILY_LIMIT);
+  ipCounters.set(ip, ipCheck.counter);
+  if (!ipCheck.allowed) {
+    return new Response(
+      JSON.stringify({
+        error: "You've reached today's extraction limit for this tool. Please try again tomorrow, or enter lease terms manually.",
+      }),
+      { status: 429 }
+    );
   }
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -82,7 +150,7 @@ export default async function handler(req: Request): Promise<Response> {
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-6",
+        model: "claude-haiku-4-5-20251001",
         max_tokens: 2000,
         system: SYSTEM_PROMPT,
         messages: [
