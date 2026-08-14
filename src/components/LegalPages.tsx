@@ -101,6 +101,64 @@ export function TermsPage({ onBack }: PageProps) {
   );
 }
 
+export function DisclaimerPage({ onBack }: PageProps) {
+  return (
+    <PageShell title="Disclaimer & Limitations" onBack={onBack}>
+      <p style={{ fontStyle: "italic" }}>Last updated: August 14, 2026</p>
+
+      <h3>Scope of this tool</h3>
+      <p>
+        LesseeTrail implements standard lessee-side ASC 842 accounting for a single, straightforward
+        commercial lease: extraction of key lease terms from an uploaded agreement, the five finance-lease
+        classification criteria, initial ROU asset and lease liability measurement, periodic amortization,
+        and journal entries. It does not cover lessor accounting, sale-leaseback transactions, subleases,
+        lease modifications or reassessments after commencement, impairment testing, embedded leases within
+        larger contracts, leases with variable payments not based on an index or rate, residual value
+        guarantees beyond simple inclusion in the payment stream, related-party leases, or portfolio-level
+        practical expedients beyond the basic short-term lease election. If your lease involves any of these
+        circumstances, LesseeTrail's output should not be relied upon without appropriate professional
+        review.
+      </p>
+
+      <h3>Classification judgment</h3>
+      <p>
+        The 75% (economic life) and 90% (fair value) figures shown in the classification walkthrough are
+        commonly used indicators or reasonable approaches in practice; they are not bright-line requirements
+        under ASC 842. Lease classification requires judgment based on the facts and circumstances,
+        particularly when the results are close to these indicators. LesseeTrail's classification output is
+        a calculation aid and starting point for that judgment, not a final accounting determination.
+      </p>
+
+      <h3>Discount rate</h3>
+      <p>
+        The discount rate is supplied by you. LesseeTrail does not determine whether the rate implicit in
+        the lease is readily determinable, determine an appropriate incremental borrowing rate, or assess
+        whether a risk-free rate election is available or applicable. You are responsible for determining
+        and supporting the appropriate discount rate under ASC 842 before relying on the resulting
+        calculations.
+      </p>
+
+      <h3>AI extraction accuracy</h3>
+      <p>
+        The AI extraction step is a data-entry aid and may misread, omit, or misinterpret terms—particularly
+        in scanned or image-based PDFs, unusually worded clauses, or documents with non-standard structures.
+        Every extracted field must be verified against the source lease agreement before use. The "Verify"
+        status exists specifically because extracted values are not guaranteed to be accurate. AI extraction
+        does not replace your review or accounting judgment.
+      </p>
+
+      <h3>Not an audit-ready output</h3>
+      <p>
+        Nothing produced by LesseeTrail—including extracted data, lease classification, ROU asset or lease
+        liability calculations, amortization schedules, or journal entries—is a substitute for review by a
+        qualified accounting professional before use in financial reporting. Users are responsible for
+        validating the underlying lease terms, assumptions, calculations, accounting conclusions, and
+        applicable accounting policies.
+      </p>
+    </PageShell>
+  );
+}
+
 export function PrivacyPage({ onBack }: PageProps) {
   return (
     <PageShell title="Privacy" onBack={onBack}>
